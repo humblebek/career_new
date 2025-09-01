@@ -76,7 +76,7 @@
 
                 <div class="flex items-center space-x-4">
                     @auth
-{{--                        <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Dashboard</a>--}}
+                        <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Dashboard</a>
 {{--                        <a href="{{ route('profile.edit') }}" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Profile</a>--}}
                         @if(auth()->user()->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Admin</a>
