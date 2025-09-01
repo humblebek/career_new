@@ -162,4 +162,4 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleOptions();
 });
 </script>
-@endsection
+</x-app-layout>
