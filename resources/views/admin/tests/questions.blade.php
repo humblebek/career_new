@@ -117,4 +117,4 @@
         @endif
     </div>
 </div>
-@endsection
+</x-app-layout>
