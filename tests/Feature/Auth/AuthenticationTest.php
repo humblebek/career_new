@@ -42,6 +42,22 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_login_requires_email_and_password(): void
+    {
+        $response = $this->post('/login', []);
+
+        $response->assertSessionHasErrors(['email', 'password']);
+    }
+
+    public function test_authenticated_user_cannot_access_login_page(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/login');
+
+        $response->assertRedirect();
+    }
+
     public function test_users_can_logout(): void
     {
         $user = User::factory()->create();
@@ -49,6 +65,13 @@ class AuthenticationTest extends TestCase
         $response = $this->actingAs($user)->post('/logout');
 
         $this->assertGuest();
-        $response->assertRedirect('/');
+        $response->assertRedirect(route('home'));
+    }
+
+    public function test_guest_cannot_logout(): void
+    {
+        $response = $this->post('/logout');
+
+        $response->assertRedirect(route('login'));
     }
 }
