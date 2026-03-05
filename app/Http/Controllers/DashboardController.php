@@ -14,16 +14,15 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
 
         // Get available career tests
         $availableTests = CareerTest::where('is_active', true)->get();
 
-        // Get user's test attempts
-        $testAttempts = TestAttempt::where('user_id', $user->id)
+        // Get user's test attempts (paginated)
+        $testAttempts = TestAttempt::where('user_id', Auth::id())
             ->with(['careerTest', 'careerResult'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(5);
 
         return view('dashboard', compact('availableTests', 'testAttempts'));
     }

@@ -13,11 +13,13 @@ class Question extends Model
         'question_text',
         'question_type',
         'options',
+        'career_weights',
         'order',
     ];
 
     protected $casts = [
         'options' => 'array',
+        'career_weights' => 'array',
     ];
 
     /**

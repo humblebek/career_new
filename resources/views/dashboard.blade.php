@@ -80,7 +80,7 @@
 
                 @if($testAttempts->count() > 0)
                     <div class="space-y-4">
-                        @foreach($testAttempts->take(5) as $attempt)
+                        @foreach($testAttempts as $attempt)
                             <div class="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all duration-300 bg-gradient-to-r from-white to-gray-50">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
@@ -125,6 +125,12 @@
                             </div>
                         @endforeach
                     </div>
+
+                    @if($testAttempts->hasPages())
+                        <div class="mt-6">
+                            {{ $testAttempts->links() }}
+                        </div>
+                    @endif
                 @else
                     <div class="text-center py-12">
                         <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">

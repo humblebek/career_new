@@ -5,15 +5,11 @@ use Illuminate\Support\Str;
 return [
 
     /*
-    |--------------------------------------------------------------------------
     | Default Database Connection Name
     |--------------------------------------------------------------------------
-    |
-    | Here you may specify which of the database connections below you wish
-    | to use as your default connection for database operations. This is
-    | the connection which will be utilized unless another connection
-    | is explicitly specified when you execute a query / statement.
-    |
+    | Set DB_CONNECTION in your .env file:
+    |   - local/dev:    DB_CONNECTION=sqlite
+    |   - production:   DB_CONNECTION=mysql  (or pgsql)
     */
 
     'default' => env('DB_CONNECTION', 'sqlite'),
