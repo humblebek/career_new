@@ -14,12 +14,15 @@ class Question extends Model
         'question_type',
         'options',
         'career_weights',
+        'category',
+        'importance',
         'order',
     ];
 
     protected $casts = [
-        'options' => 'array',
+        'options'        => 'array',
         'career_weights' => 'array',
+        'importance'     => 'float',
     ];
 
     /**

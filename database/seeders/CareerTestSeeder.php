@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Career;
 use App\Models\CareerTest;
 use App\Models\Question;
 use App\Models\User;
@@ -14,7 +15,55 @@ class CareerTestSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create admin user (if not exists)
+        // =================================================================
+        // Seed careers into the careers table
+        // =================================================================
+        $careersData = [
+            [
+                'title'       => 'Software Engineer',
+                'description' => 'Software engineers design, develop, and maintain software applications. They work with programming languages, databases, and various technologies to create solutions for businesses and users.',
+                'skills'      => ['Programming', 'Problem Solving', 'System Design', 'Database Management', 'Version Control'],
+                'paths'       => ['Junior Developer', 'Senior Developer', 'Tech Lead', 'Software Architect', 'CTO'],
+            ],
+            [
+                'title'       => 'Data Scientist',
+                'description' => 'Data scientists analyze complex data to help organizations make informed decisions. They use statistical methods, machine learning, and programming to extract insights from data.',
+                'skills'      => ['Statistics', 'Machine Learning', 'Data Analysis', 'Programming', 'Data Visualization'],
+                'paths'       => ['Junior Data Scientist', 'Data Scientist', 'Senior Data Scientist', 'Data Science Manager', 'Chief Data Officer'],
+            ],
+            [
+                'title'       => 'Marketing Manager',
+                'description' => 'Marketing managers develop and implement marketing strategies to promote products or services. They oversee campaigns, analyze market trends, and work with creative teams.',
+                'skills'      => ['Strategic Planning', 'Communication', 'Market Research', 'Digital Marketing', 'Project Management'],
+                'paths'       => ['Marketing Coordinator', 'Marketing Specialist', 'Marketing Manager', 'Senior Marketing Manager', 'CMO'],
+            ],
+            [
+                'title'       => 'Teacher',
+                'description' => 'Teachers educate and inspire students in various subjects. They create lesson plans, assess student progress, and help develop critical thinking and problem-solving skills.',
+                'skills'      => ['Communication', 'Patience', 'Subject Knowledge', 'Classroom Management', 'Assessment'],
+                'paths'       => ['Assistant Teacher', 'Teacher', 'Senior Teacher', 'Department Head', 'Principal'],
+            ],
+            [
+                'title'       => 'Doctor',
+                'description' => 'Doctors diagnose and treat illnesses, injuries, and medical conditions. They work to improve patient health and well-being through medical care and treatment.',
+                'skills'      => ['Medical Knowledge', 'Diagnosis', 'Patient Care', 'Communication', 'Critical Thinking'],
+                'paths'       => ['Resident', 'Attending Physician', 'Specialist', 'Department Head', 'Chief Medical Officer'],
+            ],
+            [
+                'title'       => 'Artist',
+                'description' => 'Artists create visual, musical, or performing works of art. They express ideas, emotions, and concepts through various artistic mediums and techniques.',
+                'skills'      => ['Creativity', 'Visual Design', 'Technical Skills', 'Artistic Vision', 'Communication'],
+                'paths'       => ['Freelance Artist', 'Studio Artist', 'Art Director', 'Creative Director', 'Gallery Owner'],
+            ],
+        ];
+
+        foreach ($careersData as $c) {
+            Career::firstOrCreate(['title' => $c['title']], $c);
+        }
+
+        // =================================================================
+        // Create users
+        // =================================================================
         $admin = User::firstOrCreate(
             ['email' => 'admin@careerpath.com'],
             [
@@ -24,7 +73,6 @@ class CareerTestSeeder extends Seeder
             ]
         );
 
-        // Create sample student (if not exists)
         $student = User::firstOrCreate(
             ['email' => 'student@careerpath.com'],
             [
@@ -34,7 +82,9 @@ class CareerTestSeeder extends Seeder
             ]
         );
 
-        // Create career test (if not exists)
+        // =================================================================
+        // Comprehensive Career Assessment
+        // =================================================================
         $test = CareerTest::firstOrCreate(
             ['title' => 'Comprehensive Career Assessment'],
             [
@@ -44,13 +94,11 @@ class CareerTestSeeder extends Seeder
             ]
         );
 
-        // Create questions
         $questions = [
             [
                 'question_text' => 'What type of activities do you enjoy most?',
                 'question_type' => 'multiple_choice',
                 'options' => ['Working with computers and technology', 'Helping and teaching others', 'Creating art or music', 'Analyzing data and solving problems', 'Leading teams and managing projects'],
-                // Each element maps by index to the option above
                 'career_weights' => [
                     'options' => [
                         ['Software Engineer' => 3, 'Data Scientist' => 1],
@@ -60,13 +108,14 @@ class CareerTestSeeder extends Seeder
                         ['Marketing Manager' => 3],
                     ],
                 ],
-                'order' => 1,
+                'category'   => 'interests',
+                'importance' => 1.2,
+                'order'      => 1,
             ],
             [
                 'question_text' => 'How much do you enjoy working with numbers and data?',
                 'question_type' => 'scale',
                 'options' => null,
-                // High score → strong signal for Data Scientist / Software Engineer
                 'career_weights' => [
                     'careers' => [
                         'Data Scientist'    => 0.8,
@@ -77,7 +126,9 @@ class CareerTestSeeder extends Seeder
                         'Artist'            => 0.0,
                     ],
                 ],
-                'order' => 2,
+                'category'   => 'skills',
+                'importance' => 1.0,
+                'order'      => 2,
             ],
             [
                 'question_text' => 'Describe your ideal work environment.',
@@ -98,7 +149,9 @@ class CareerTestSeeder extends Seeder
                         'quiet'       => ['Data Scientist' => 1, 'Software Engineer' => 1],
                     ],
                 ],
-                'order' => 3,
+                'category'   => 'personality',
+                'importance' => 0.8,
+                'order'      => 3,
             ],
             [
                 'question_text' => 'What motivates you most in a job?',
@@ -113,7 +166,9 @@ class CareerTestSeeder extends Seeder
                         ['Marketing Manager' => 3, 'Software Engineer' => 1],
                     ],
                 ],
-                'order' => 4,
+                'category'   => 'goals',
+                'importance' => 1.0,
+                'order'      => 4,
             ],
             [
                 'question_text' => 'How comfortable are you with public speaking and presentations?',
@@ -129,7 +184,9 @@ class CareerTestSeeder extends Seeder
                         'Artist'            => 0.3,
                     ],
                 ],
-                'order' => 5,
+                'category'   => 'skills',
+                'importance' => 1.0,
+                'order'      => 5,
             ],
             [
                 'question_text' => 'What subjects did you enjoy most in school?',
@@ -144,7 +201,9 @@ class CareerTestSeeder extends Seeder
                         ['Doctor' => 1, 'Teacher' => 1],
                     ],
                 ],
-                'order' => 6,
+                'category'   => 'interests',
+                'importance' => 1.2,
+                'order'      => 6,
             ],
             [
                 'question_text' => 'Describe a project or task you completed that you were proud of.',
@@ -167,13 +226,14 @@ class CareerTestSeeder extends Seeder
                         'project'       => ['Software Engineer' => 1, 'Marketing Manager' => 1],
                     ],
                 ],
-                'order' => 7,
+                'category'   => 'skills',
+                'importance' => 0.8,
+                'order'      => 7,
             ],
             [
                 'question_text' => 'How important is work-life balance to you?',
                 'question_type' => 'scale',
                 'options' => null,
-                // High score slightly favours Teacher and Artist (more flexible) over Doctor
                 'career_weights' => [
                     'careers' => [
                         'Teacher'           => 0.4,
@@ -184,7 +244,9 @@ class CareerTestSeeder extends Seeder
                         'Doctor'            => 0.1,
                     ],
                 ],
-                'order' => 8,
+                'category'   => 'personality',
+                'importance' => 0.6,
+                'order'      => 8,
             ],
             [
                 'question_text' => 'What type of problems do you enjoy solving?',
@@ -199,7 +261,9 @@ class CareerTestSeeder extends Seeder
                         ['Data Scientist' => 3, 'Doctor' => 1],
                     ],
                 ],
-                'order' => 9,
+                'category'   => 'interests',
+                'importance' => 1.2,
+                'order'      => 9,
             ],
             [
                 'question_text' => 'Where do you see yourself in 10 years?',
@@ -223,7 +287,9 @@ class CareerTestSeeder extends Seeder
                         'running my own' => ['Marketing Manager' => 2, 'Artist' => 1],
                     ],
                 ],
-                'order' => 10,
+                'category'   => 'goals',
+                'importance' => 1.0,
+                'order'      => 10,
             ],
         ];
 
@@ -233,14 +299,19 @@ class CareerTestSeeder extends Seeder
                 ->first();
 
             if ($existing) {
-                // Update career_weights on existing questions (so re-seeding is safe)
-                $existing->update(['career_weights' => $qData['career_weights']]);
+                $existing->update([
+                    'career_weights' => $qData['career_weights'],
+                    'category'       => $qData['category'],
+                    'importance'     => $qData['importance'],
+                ]);
             } else {
                 Question::create(array_merge($qData, ['career_test_id' => $test->id]));
             }
         }
 
-        // Create another test (if not exists)
+        // =================================================================
+        // STEM Career Assessment
+        // =================================================================
         $test2 = CareerTest::firstOrCreate(
             ['title' => 'STEM Career Assessment'],
             [
@@ -264,7 +335,9 @@ class CareerTestSeeder extends Seeder
                         ['Teacher' => 1, 'Artist' => 1],
                     ],
                 ],
-                'order' => 1,
+                'category'   => 'skills',
+                'importance' => 1.2,
+                'order'      => 1,
             ],
             [
                 'question_text' => 'How interested are you in artificial intelligence and machine learning?',
@@ -280,7 +353,9 @@ class CareerTestSeeder extends Seeder
                         'Artist'            => 0.0,
                     ],
                 ],
-                'order' => 2,
+                'category'   => 'interests',
+                'importance' => 1.0,
+                'order'      => 2,
             ],
             [
                 'question_text' => 'What type of engineering field appeals to you?',
@@ -301,7 +376,9 @@ class CareerTestSeeder extends Seeder
                         ['Doctor' => 2, 'Data Scientist' => 1],
                     ],
                 ],
-                'order' => 3,
+                'category'   => 'interests',
+                'importance' => 1.0,
+                'order'      => 3,
             ],
             [
                 'question_text' => 'Describe your experience with mathematics.',
@@ -320,7 +397,9 @@ class CareerTestSeeder extends Seeder
                         'research'     => ['Data Scientist' => 2],
                     ],
                 ],
-                'order' => 4,
+                'category'   => 'skills',
+                'importance' => 0.8,
+                'order'      => 4,
             ],
         ];
 
@@ -330,7 +409,11 @@ class CareerTestSeeder extends Seeder
                 ->first();
 
             if ($existing) {
-                $existing->update(['career_weights' => $qData['career_weights']]);
+                $existing->update([
+                    'career_weights' => $qData['career_weights'],
+                    'category'       => $qData['category'],
+                    'importance'     => $qData['importance'],
+                ]);
             } else {
                 Question::create(array_merge($qData, ['career_test_id' => $test2->id]));
             }

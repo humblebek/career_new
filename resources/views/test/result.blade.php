@@ -91,21 +91,55 @@
             <div class="p-8">
                 <h3 class="text-2xl font-bold text-gray-900 mb-6">Career Match Analysis</h3>
                 <div class="space-y-6">
-                    @foreach($careerResult->detailed_analysis as $career => $score)
+                    @foreach($careerResult->detailed_analysis as $career => $percentage)
                         <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                             <span class="text-lg text-gray-700 font-medium">{{ $career }}</span>
                             <div class="flex items-center">
                                 <div class="w-40 bg-gray-200 rounded-full h-3 mr-4">
                                     <div class="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-500"
-                                         style="width: {{ ($score / max($careerResult->detailed_analysis)) * 100 }}%"></div>
+                                         style="width: {{ min($percentage, 100) }}%"></div>
                                 </div>
-                                <span class="text-lg text-gray-600 w-16 text-right font-semibold">{{ round($score, 1) }}</span>
+                                <span class="text-lg text-gray-600 w-16 text-right font-semibold">{{ round($percentage, 1) }}%</span>
                             </div>
                         </div>
                     @endforeach
                 </div>
             </div>
         </div>
+
+        <!-- Category Breakdown -->
+        @if($careerResult->category_scores && count($careerResult->category_scores) > 0)
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-2xl mb-8 border border-gray-100">
+            <div class="p-8">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6">Category Breakdown</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    @foreach($careerResult->category_scores as $category => $careers)
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4 capitalize">{{ $category }}</h4>
+                            <div class="space-y-3">
+                                @php
+                                    arsort($careers);
+                                    $topCareers = array_slice($careers, 0, 3, true);
+                                @endphp
+                                @foreach($topCareers as $career => $score)
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">{{ $career }}</span>
+                                        <div class="flex items-center">
+                                            <div class="w-24 bg-gray-200 rounded-full h-2 mr-3">
+                                                <div class="bg-gradient-to-r from-primary-400 to-primary-500 h-2 rounded-full"
+                                                     style="width: {{ min($score, 100) }}%"></div>
+                                            </div>
+                                            <span class="text-sm text-gray-500 w-12 text-right">{{ round($score, 1) }}%</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        @endif
 
         <!-- Action Buttons -->
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-2xl border border-gray-100">

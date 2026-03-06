@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Answer;
+use App\Models\Career;
 use App\Models\CareerResult;
 use App\Models\CareerTest;
 use App\Models\Question;
@@ -22,6 +23,26 @@ class CareerMatchingServiceTest extends TestCase
     {
         parent::setUp();
         $this->service = new CareerMatchingService();
+        $this->seedCareers();
+    }
+
+    /**
+     * Seed careers into the database so the service can load them.
+     */
+    private function seedCareers(): void
+    {
+        $careers = [
+            ['title' => 'Software Engineer', 'description' => 'Builds software.', 'skills' => ['Programming'], 'paths' => ['Junior Developer']],
+            ['title' => 'Data Scientist', 'description' => 'Analyzes data.', 'skills' => ['Statistics'], 'paths' => ['Junior Data Scientist']],
+            ['title' => 'Marketing Manager', 'description' => 'Manages marketing.', 'skills' => ['Communication'], 'paths' => ['Marketing Coordinator']],
+            ['title' => 'Teacher', 'description' => 'Educates students.', 'skills' => ['Patience'], 'paths' => ['Assistant Teacher']],
+            ['title' => 'Doctor', 'description' => 'Treats patients.', 'skills' => ['Medical Knowledge'], 'paths' => ['Resident']],
+            ['title' => 'Artist', 'description' => 'Creates art.', 'skills' => ['Creativity'], 'paths' => ['Freelance Artist']],
+        ];
+
+        foreach ($careers as $c) {
+            Career::firstOrCreate(['title' => $c['title']], $c);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -49,6 +70,8 @@ class CareerMatchingServiceTest extends TestCase
                 'question_type' => $q['type'],
                 'options' => $q['options'] ?? null,
                 'career_weights' => $q['career_weights'] ?? null,
+                'category' => $q['category'] ?? 'general',
+                'importance' => $q['importance'] ?? 1.0,
                 'order' => $i + 1,
             ]);
             Answer::create([
@@ -151,7 +174,6 @@ class CareerMatchingServiceTest extends TestCase
 
         $this->assertEquals('Data Scientist', $result->career_title);
         $this->assertArrayHasKey('Data Scientist', $result->detailed_analysis);
-        $this->assertEquals(8.0, $result->detailed_analysis['Data Scientist']);
     }
 
     public function test_scale_fallback_gives_small_uniform_boost(): void
@@ -166,10 +188,9 @@ class CareerMatchingServiceTest extends TestCase
 
         $result = $this->service->generate($attempt);
 
-        // All careers should get equal boost → all equal → first alphabetically or first in array
+        // All careers should get equal boost → all equal percentages
         $analysis = $result->detailed_analysis;
         $values = array_values($analysis);
-        // All values should be equal (same uniform boost)
         $this->assertEquals(count(array_unique($values)), 1);
     }
 
@@ -230,12 +251,178 @@ class CareerMatchingServiceTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // Negation detection
+    // -------------------------------------------------------------------------
+
+    public function test_short_answer_negation_reduces_score(): void
+    {
+        // Without negation — should match Software Engineer
+        $attemptPositive = $this->makeAttempt([[
+            'text' => 'Describe yourself',
+            'type' => 'short_answer',
+            'career_weights' => [
+                'keywords' => [
+                    'programming' => ['Software Engineer' => 3],
+                    'teaching' => ['Teacher' => 3],
+                ],
+            ],
+            'answer' => 'I love programming',
+        ]]);
+        $resultPositive = $this->service->generate($attemptPositive);
+
+        // With negation — should NOT match Software Engineer strongly
+        $attemptNegated = $this->makeAttempt([[
+            'text' => 'Describe yourself',
+            'type' => 'short_answer',
+            'career_weights' => [
+                'keywords' => [
+                    'programming' => ['Software Engineer' => 3],
+                    'teaching' => ['Teacher' => 3],
+                ],
+            ],
+            'answer' => "I don't like programming but I love teaching",
+        ]]);
+        $resultNegated = $this->service->generate($attemptNegated);
+
+        // The negated result should give Teacher higher than SE
+        $this->assertEquals('Teacher', $resultNegated->career_title);
+        // And the positive result should give SE highest
+        $this->assertEquals('Software Engineer', $resultPositive->career_title);
+    }
+
+    public function test_negation_with_hate_keyword(): void
+    {
+        $attempt = $this->makeAttempt([[
+            'text' => 'Tell us about yourself',
+            'type' => 'short_answer',
+            'career_weights' => [
+                'keywords' => [
+                    'coding' => ['Software Engineer' => 3],
+                    'art' => ['Artist' => 3],
+                ],
+            ],
+            'answer' => 'I hate coding but love art',
+        ]]);
+
+        $result = $this->service->generate($attempt);
+
+        $this->assertEquals('Artist', $result->career_title);
+    }
+
+    // -------------------------------------------------------------------------
+    // Normalisation
+    // -------------------------------------------------------------------------
+
+    public function test_scale_and_mc_contribute_equally_after_normalisation(): void
+    {
+        // One MC question pointing to Artist, one scale question pointing to SE
+        // With normalisation, they should contribute on the same scale
+        $attempt = $this->makeAttempt([
+            [
+                'text' => 'Q1',
+                'type' => 'multiple_choice',
+                'options' => ['Paint', 'Code'],
+                'career_weights' => ['options' => [['Artist' => 3], ['Software Engineer' => 3]]],
+                'answer' => 'Paint',
+                'importance' => 1.0,
+            ],
+            [
+                'text' => 'Q2',
+                'type' => 'scale',
+                'career_weights' => ['careers' => [
+                    'Software Engineer' => 0.9,
+                    'Data Scientist' => 0.0, 'Marketing Manager' => 0.0,
+                    'Teacher' => 0.0, 'Doctor' => 0.0, 'Artist' => 0.0,
+                ]],
+                'answer' => '10',
+                'score' => 10,
+                'importance' => 1.0,
+            ],
+        ]);
+
+        $result = $this->service->generate($attempt);
+
+        // Both questions have importance 1.0, and both give max score for their career
+        // So SE and Artist should have similar scores (both normalised to 1.0)
+        $analysis = $result->detailed_analysis;
+        $seDiff = abs($analysis['Software Engineer'] - $analysis['Artist']);
+        // They should be very close (within 1% difference)
+        $this->assertLessThan(1.0, $seDiff, 'MC and scale should contribute equally after normalisation');
+    }
+
+    // -------------------------------------------------------------------------
+    // Question importance
+    // -------------------------------------------------------------------------
+
+    public function test_higher_importance_question_has_more_impact(): void
+    {
+        $attempt = $this->makeAttempt([
+            [
+                'text' => 'Low importance Q',
+                'type' => 'multiple_choice',
+                'options' => ['Code'],
+                'career_weights' => ['options' => [['Software Engineer' => 3]]],
+                'answer' => 'Code',
+                'importance' => 0.5,
+            ],
+            [
+                'text' => 'High importance Q',
+                'type' => 'multiple_choice',
+                'options' => ['Paint'],
+                'career_weights' => ['options' => [['Artist' => 3]]],
+                'answer' => 'Paint',
+                'importance' => 2.0,
+            ],
+        ]);
+
+        $result = $this->service->generate($attempt);
+
+        // Artist should win because its question has 4x importance
+        $this->assertEquals('Artist', $result->career_title);
+        $this->assertGreaterThan(
+            $result->detailed_analysis['Software Engineer'],
+            $result->detailed_analysis['Artist']
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Category scores
+    // -------------------------------------------------------------------------
+
+    public function test_category_scores_are_included_in_result(): void
+    {
+        $attempt = $this->makeAttempt([
+            [
+                'text' => 'Q1',
+                'type' => 'multiple_choice',
+                'options' => ['Code'],
+                'career_weights' => ['options' => [['Software Engineer' => 3]]],
+                'answer' => 'Code',
+                'category' => 'skills',
+            ],
+            [
+                'text' => 'Q2',
+                'type' => 'multiple_choice',
+                'options' => ['Paint'],
+                'career_weights' => ['options' => [['Artist' => 3]]],
+                'answer' => 'Paint',
+                'category' => 'interests',
+            ],
+        ]);
+
+        $result = $this->service->generate($attempt);
+
+        $this->assertNotNull($result->category_scores);
+        $this->assertArrayHasKey('skills', $result->category_scores);
+        $this->assertArrayHasKey('interests', $result->category_scores);
+    }
+
+    // -------------------------------------------------------------------------
     // Result generation
     // -------------------------------------------------------------------------
 
     public function test_top_career_is_highest_scoring(): void
     {
-        // Two questions both pointing strongly to Artist
         $attempt = $this->makeAttempt([
             [
                 'text' => 'Q1',
@@ -260,7 +447,6 @@ class CareerMatchingServiceTest extends TestCase
 
     public function test_match_percentage_is_capped_at_100(): void
     {
-        // Give a very high score to ensure cap is enforced
         $attempt = $this->makeAttempt([[
             'text' => 'Q',
             'type' => 'scale',
@@ -313,6 +499,23 @@ class CareerMatchingServiceTest extends TestCase
         $this->assertNotEmpty($result->career_paths);
     }
 
+    public function test_career_id_is_set_on_result(): void
+    {
+        $attempt = $this->makeAttempt([[
+            'text' => 'Q',
+            'type' => 'multiple_choice',
+            'options' => ['Code'],
+            'career_weights' => ['options' => [['Software Engineer' => 3]]],
+            'answer' => 'Code',
+        ]]);
+
+        $result = $this->service->generate($attempt);
+
+        $this->assertNotNull($result->career_id);
+        $career = Career::find($result->career_id);
+        $this->assertEquals('Software Engineer', $career->title);
+    }
+
     // -------------------------------------------------------------------------
     // Metadata helpers
     // -------------------------------------------------------------------------
@@ -331,7 +534,8 @@ class CareerMatchingServiceTest extends TestCase
 
     public function test_get_skills_returns_non_empty_array(): void
     {
-        foreach (CareerMatchingService::CAREERS as $career) {
+        $careers = Career::where('is_active', true)->pluck('title');
+        foreach ($careers as $career) {
             $skills = $this->service->getSkills($career);
             $this->assertIsArray($skills);
             $this->assertNotEmpty($skills);
@@ -340,10 +544,33 @@ class CareerMatchingServiceTest extends TestCase
 
     public function test_get_paths_returns_non_empty_array(): void
     {
-        foreach (CareerMatchingService::CAREERS as $career) {
+        $careers = Career::where('is_active', true)->pluck('title');
+        foreach ($careers as $career) {
             $paths = $this->service->getPaths($career);
             $this->assertIsArray($paths);
             $this->assertNotEmpty($paths);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Detailed analysis contains percentages
+    // -------------------------------------------------------------------------
+
+    public function test_detailed_analysis_contains_percentages(): void
+    {
+        $attempt = $this->makeAttempt([[
+            'text' => 'Q',
+            'type' => 'multiple_choice',
+            'options' => ['Code'],
+            'career_weights' => ['options' => [['Software Engineer' => 3]]],
+            'answer' => 'Code',
+        ]]);
+
+        $result = $this->service->generate($attempt);
+
+        foreach ($result->detailed_analysis as $career => $value) {
+            $this->assertGreaterThanOrEqual(0, $value);
+            $this->assertLessThanOrEqual(100, $value);
         }
     }
 }
