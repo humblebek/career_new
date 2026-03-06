@@ -78,6 +78,22 @@
                            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all">
                 </div>
 
+                <!-- Secret Word (2FA) -->
+                <div>
+                    <label for="secret_word" class="block text-sm font-medium text-white mb-2">Secret word (2-Factor Authentication)</label>
+                    <input id="secret_word"
+                           name="secret_word"
+                           type="password"
+                           autocomplete="off"
+                           required
+                           placeholder="Choose a secret word"
+                           class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all">
+                    <p class="mt-1 text-xs text-white/60">This will be used as 2FA when logging in. Min 3 characters.</p>
+                    @error('secret_word')
+                        <p class="mt-1 text-sm text-red-300">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Submit Button -->
                 <div>
                     <button type="submit"

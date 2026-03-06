@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -17,7 +18,7 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_users_can_authenticate_using_the_login_screen(): void
+    public function test_valid_credentials_redirect_to_secret_word_verification(): void
     {
         $user = User::factory()->create();
 
@@ -26,8 +27,8 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertGuest(); // Not authenticated yet — 2FA pending
+        $response->assertRedirect(route('secret-word.verify'));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
@@ -40,6 +41,27 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertGuest();
+    }
+
+    public function test_full_login_with_secret_word(): void
+    {
+        $user = User::factory()->create([
+            'secret_word' => Hash::make('mysecret'),
+        ]);
+
+        // Step 1: credentials
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        // Step 2: secret word
+        $response = $this->post(route('secret-word.check'), [
+            'secret_word' => 'mysecret',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('dashboard'));
     }
 
     public function test_login_requires_email_and_password(): void

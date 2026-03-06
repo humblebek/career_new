@@ -69,6 +69,7 @@ class CareerTestSeeder extends Seeder
             [
                 'name' => 'Admin User',
                 'password' => bcrypt('password'),
+                'secret_word' => bcrypt('admin'),
                 'role' => 'admin',
             ]
         );
@@ -78,6 +79,7 @@ class CareerTestSeeder extends Seeder
             [
                 'name' => 'John Student',
                 'password' => bcrypt('password'),
+                'secret_word' => bcrypt('secret'),
                 'role' => 'student',
             ]
         );

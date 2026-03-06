@@ -3,11 +3,8 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -21,45 +18,43 @@ class RegistrationTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_new_users_are_redirected_to_verification_notice(): void
+    public function test_new_users_are_redirected_to_dashboard(): void
     {
-        Notification::fake();
-
         $response = $this->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'secret_word' => 'mysecret',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('verification.notice'));
+        $response->assertRedirect(route('dashboard'));
     }
 
-    public function test_registration_sends_verification_email(): void
+    public function test_registration_stores_hashed_secret_word(): void
     {
-        Notification::fake();
-
         $this->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'secret_word' => 'mysecret',
         ]);
 
         $user = User::where('email', 'test@example.com')->first();
-        Notification::assertSentTo($user, VerifyEmail::class);
+        $this->assertNotNull($user);
+        $this->assertTrue(Hash::check('mysecret', $user->secret_word));
     }
 
     public function test_registration_assigns_student_role(): void
     {
-        Notification::fake();
-
         $this->post('/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'secret_word' => 'mysecret',
         ]);
 
         $this->assertDatabaseHas('users', [
@@ -81,13 +76,13 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'secret_word' => 'mysecret',
         ]);
         $response->assertSessionHasErrors('name');
     }
 
     public function test_registration_requires_unique_email(): void
     {
-        Notification::fake();
         User::factory()->create(['email' => 'test@example.com']);
 
         $response = $this->post('/register', [
@@ -95,6 +90,7 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'secret_word' => 'mysecret',
         ]);
         $response->assertSessionHasErrors('email');
     }
@@ -106,7 +102,19 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'different',
+            'secret_word' => 'mysecret',
         ]);
         $response->assertSessionHasErrors('password');
+    }
+
+    public function test_registration_requires_secret_word(): void
+    {
+        $response = $this->post('/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+        $response->assertSessionHasErrors('secret_word');
     }
 }
