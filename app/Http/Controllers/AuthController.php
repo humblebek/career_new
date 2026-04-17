@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -10,6 +11,8 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(protected AuditLogger $audit) {}
+
     /**
      * Show the login form.
      */
@@ -32,6 +35,7 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
+            $this->audit->log('login.failed', userId: null);
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
@@ -75,6 +79,7 @@ class AuthController extends Controller
         $user = User::find($userId);
 
         if (!$user || !Hash::check($request->secret_word, $user->secret_word)) {
+            $this->audit->log('login.2fa_failed', userId: $userId);
             throw ValidationException::withMessages([
                 'secret_word' => 'The secret word is incorrect.',
             ]);
@@ -86,6 +91,8 @@ class AuthController extends Controller
         // Complete login
         Auth::login($user, $remember);
         $request->session()->regenerate();
+
+        $this->audit->log('login.success', userId: $user->id);
 
         return redirect()->intended(route('dashboard'));
     }
@@ -128,10 +135,13 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $userId = Auth::id();
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        $this->audit->log('logout', userId: $userId);
 
         return redirect()->route('home');
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CareerTest;
 use App\Models\TestAttempt;
 use App\Models\Answer;
+use App\Services\AuditLogger;
 use App\Services\CareerMatchingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class TestController extends Controller
 {
-    public function __construct(protected CareerMatchingService $matchingService) {}
+    public function __construct(
+        protected CareerMatchingService $matchingService,
+        protected AuditLogger $audit,
+    ) {}
 
     /**
      * Start a career test.
@@ -109,6 +113,14 @@ class TestController extends Controller
 
             $this->matchingService->generate($testAttempt);
         });
+
+        $this->audit->log(
+            'test.completed',
+            Auth::id(),
+            'CareerTest',
+            $testAttempt->career_test_id,
+            $testAttempt->careerTest->title,
+        );
 
         return redirect()->route('test.result', $testAttempt);
     }

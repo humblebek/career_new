@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
     // Admin routes
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+        Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs');
         // Career tests management
         Route::get('/tests', [AdminController::class, 'tests'])->name('tests');
         Route::get('/tests/create', [AdminController::class, 'createTest'])->name('tests.create');

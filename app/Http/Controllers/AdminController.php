@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\CareerTest;
 use App\Models\Question;
 use App\Models\TestAttempt;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
     /**
      * Create a new controller instance.
      */
-    public function __construct()
+    public function __construct(protected AuditLogger $audit)
     {
         $this->middleware('auth');
         $this->middleware('admin');
@@ -34,6 +37,15 @@ class AdminController extends Controller
             ->get();
 
         return view('admin.dashboard', compact('totalTests', 'totalQuestions', 'totalAttempts', 'completedAttempts', 'recentTests'));
+    }
+
+    public function auditLogs()
+    {
+        $logs = AuditLog::with('user')
+            ->orderByDesc('created_at')
+            ->paginate(50);
+
+        return view('admin.audit-logs', compact('logs'));
     }
 
     /**
@@ -67,7 +79,9 @@ class AdminController extends Controller
             'duration_minutes' => 'required|integer|min:1|max:300',
         ]);
 
-        CareerTest::create($request->all());
+        $test = CareerTest::create($request->all());
+
+        $this->audit->log('admin.test.created', Auth::id(), 'CareerTest', $test->id, $test->title);
 
         return redirect()->route('admin.tests')->with('success', 'Career test created successfully.');
     }
@@ -95,6 +109,8 @@ class AdminController extends Controller
 
         $careerTest->update($request->all());
 
+        $this->audit->log('admin.test.updated', Auth::id(), 'CareerTest', $careerTest->id, $careerTest->title);
+
         return redirect()->route('admin.tests')->with('success', 'Career test updated successfully.');
     }
 
@@ -103,6 +119,8 @@ class AdminController extends Controller
      */
     public function destroyTest(CareerTest $careerTest)
     {
+        $this->audit->log('admin.test.deleted', Auth::id(), 'CareerTest', $careerTest->id, $careerTest->title);
+
         $careerTest->delete();
 
         return redirect()->route('admin.tests')->with('success', 'Career test deleted successfully.');
@@ -145,7 +163,9 @@ class AdminController extends Controller
             $questionData['options'] = $request->options;
         }
 
-        Question::create($questionData);
+        $question = Question::create($questionData);
+
+        $this->audit->log('admin.question.created', Auth::id(), 'Question', $question->id, $question->question_text);
 
         return redirect()->route('admin.tests.questions', $careerTest)->with('success', 'Question created successfully.');
     }
@@ -181,6 +201,8 @@ class AdminController extends Controller
 
         $question->update($questionData);
 
+        $this->audit->log('admin.question.updated', Auth::id(), 'Question', $question->id, $question->question_text);
+
         return redirect()->route('admin.tests.questions', $question->careerTest)->with('success', 'Question updated successfully.');
     }
 
@@ -190,6 +212,9 @@ class AdminController extends Controller
     public function destroyQuestion(Question $question)
     {
         $careerTest = $question->careerTest;
+
+        $this->audit->log('admin.question.deleted', Auth::id(), 'Question', $question->id, $question->question_text);
+
         $question->delete();
 
         return redirect()->route('admin.tests.questions', $careerTest)->with('success', 'Question deleted successfully.');
