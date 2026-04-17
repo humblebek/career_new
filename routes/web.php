@@ -16,14 +16,14 @@ Route::get('/privacy-policy', fn () => view('privacy-policy'))->name('privacy-po
 // Guest-only authentication routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
 
 // Secret word 2FA verification (no auth middleware — user is not logged in yet)
 Route::get('/secret-word-verify', [AuthController::class, 'showSecretWordForm'])->name('secret-word.verify');
-Route::post('/secret-word-verify', [AuthController::class, 'verifySecretWord'])->name('secret-word.check');
+Route::post('/secret-word-verify', [AuthController::class, 'verifySecretWord'])->name('secret-word.check')->middleware('throttle:secret-word');
 
 // Logout (auth only)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
