@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/privacy-policy', fn () => view('privacy-policy'))->name('privacy-policy');
 
 // Guest-only authentication routes
 Route::middleware('guest')->group(function () {

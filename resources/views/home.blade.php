@@ -170,4 +170,12 @@
     </div>
 </div>
 
+<!-- Footer -->
+<div class="bg-gray-900 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p class="text-gray-400 text-sm">&copy; {{ date('Y') }} {{ config('app.name', 'CareerPath') }}. All rights reserved.</p>
+        <a href="{{ route('privacy-policy') }}" class="text-gray-400 hover:text-white text-sm underline transition">Privacy Policy</a>
+    </div>
+</div>
+
 @endsection

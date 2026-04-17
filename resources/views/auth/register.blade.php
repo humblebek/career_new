@@ -102,6 +102,12 @@
                     </button>
                 </div>
 
+                <!-- Privacy notice -->
+                <p class="text-center text-white/70 text-xs">
+                    By creating an account you agree to our
+                    <a href="{{ route('privacy-policy') }}" target="_blank" class="underline hover:text-white">Privacy Policy</a>.
+                </p>
+
                 <!-- Login Link -->
                 <div class="text-center">
                     <p class="text-white/80">
