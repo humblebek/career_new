@@ -21,7 +21,7 @@
             <section>
                 <h2 class="text-xl font-bold text-gray-900 mb-3">1. Who We Are</h2>
                 <p>
-                    <strong>{{ config('app.name', 'CareerPath') }}</strong> ("we", "us", "our") is a career
+                    <strong>CareerPath</strong> ("we", "us", "our") is a career
                     assessment platform that helps students discover suitable career paths through guided tests.
                     This Privacy Policy explains what personal data we collect when you use our platform, why we
                     collect it, how long we keep it, and what rights you have under the
@@ -29,7 +29,7 @@
                 </p>
                 <p class="mt-2">
                     For any privacy-related queries, contact us at:
-                    <a href="mailto:privacy@careerpath.example.com" class="text-primary-600 hover:underline">privacy@careerpath.example.com</a>.
+                    <a href="mailto:askazizbek1@gmail.com" class="text-primary-600 hover:underline">askazizbek1@gmail.com</a>.
                 </p>
             </section>
 
@@ -119,7 +119,7 @@
                 </ul>
                 <p class="mt-3">
                     To exercise any of these rights, email us at
-                    <a href="mailto:privacy@careerpath.example.com" class="text-primary-600 hover:underline">privacy@careerpath.example.com</a>.
+                    <a href="mailto:askazizbek1@gmail.com" class="text-primary-600 hover:underline">askazizbek1@gmail.com</a>.
                     We will respond within <strong>30 days</strong>. You also have the right to lodge a complaint with your national
                     supervisory authority (e.g. the ICO in the UK, or your local EU DPA).
                 </p>

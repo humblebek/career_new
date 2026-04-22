@@ -147,16 +147,14 @@
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold mb-4">Support</h3>
+                    <h3 class="text-lg font-semibold mb-4">Privacy Policy</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="{{ route('privacy-policy') }}" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
                     </ul>
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2024 CareerPath. All rights reserved.</p>
+                <p>&copy; 2026 CareerPath. All rights reserved.</p>
             </div>
         </div>
     </footer>
