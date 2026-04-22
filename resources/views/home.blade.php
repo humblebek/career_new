@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', 'CareerPath - Discover Your Future Career')
+@section('title', 'Discover Your Future Career')
 
 @section('content')
 <div class="min-h-screen">

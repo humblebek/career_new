@@ -68,7 +68,7 @@ class CareerTestSeeder extends Seeder
             ['email' => 'admin@careerpath.com'],
             [
                 'name' => 'Admin User',
-                'password' => bcrypt('password'),
+                'password' => bcrypt('admin123'),
                 'secret_word' => bcrypt('admin'),
                 'role' => 'admin',
             ]
@@ -77,9 +77,9 @@ class CareerTestSeeder extends Seeder
         $student = User::firstOrCreate(
             ['email' => 'student@careerpath.com'],
             [
-                'name' => 'John Student',
-                'password' => bcrypt('password'),
-                'secret_word' => bcrypt('secret'),
+                'name' => 'John Doe',
+                'password' => bcrypt('student123'),
+                'secret_word' => bcrypt('student'),
                 'role' => 'student',
             ]
         );
