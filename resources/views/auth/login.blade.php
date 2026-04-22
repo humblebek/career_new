@@ -84,19 +84,19 @@
         </div>
 
         <!-- Demo Credentials -->
-        <div class="glass-effect rounded-xl p-6">
-            <h3 class="text-lg font-semibold text-white mb-3">Demo Credentials</h3>
-            <div class="space-y-2 text-sm">
-                <div class="flex justify-between">
-                    <span class="text-white/80">Student:</span>
-                    <span class="text-white">student@careerpath.com / password</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-white/80">Secret word:</span>
-                    <span class="text-white">secret</span>
-                </div>
-            </div>
-        </div>
+{{--        <div class="glass-effect rounded-xl p-6">--}}
+{{--            <h3 class="text-lg font-semibold text-white mb-3">Demo Credentials</h3>--}}
+{{--            <div class="space-y-2 text-sm">--}}
+{{--                <div class="flex justify-between">--}}
+{{--                    <span class="text-white/80">Student:</span>--}}
+{{--                    <span class="text-white">student@careerpath.com / password</span>--}}
+{{--                </div>--}}
+{{--                <div class="flex justify-between">--}}
+{{--                    <span class="text-white/80">Secret word:</span>--}}
+{{--                    <span class="text-white">secret</span>--}}
+{{--                </div>--}}
+{{--            </div>--}}
+{{--        </div>--}}
     </div>
 </div>
 @endsection
