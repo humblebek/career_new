@@ -1,61 +1,167 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Career Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A web-based career assessment platform that helps users discover their best-fit career paths through structured psychometric testing. Built with Laravel 12, Blade, Tailwind CSS, and Alpine.js.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## What It Does
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Users register, take a multi-question career test, and receive a personalized result showing their top career match with a percentage score and per-category breakdown. Admins manage the test content — careers, questions, and answer weights — through a dedicated dashboard.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Two-step authentication** — email/password login followed by a personal secret word verification
+- **Career test engine** — sequential question-answering interface with multiple question types (multiple choice, 1–10 scale, free text)
+- **Intelligent matching** — the `CareerMatchingService` scores answers, detects negations in free-text responses, applies per-question importance weights, and normalizes scores to produce a ranked career match
+- **Per-category scoring** — results show not just the top career but how the user scored across each assessed category
+- **Admin panel** — full CRUD for careers, tests, and questions; audit log viewer; test attempt history
+- **Audit logging** — all significant admin actions are recorded via `AuditLogger`
+- **Role-based access** — `student` and `admin` roles; all `/admin/*` routes are protected by `EnsureUserIsAdmin` middleware
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Tech Stack
 
-## Laravel Sponsors
+| Layer       | Technology                              |
+|-------------|------------------------------------------|
+| Backend | PHP 8.x, Laravel 12 |
+| Frontend | Blade templates, Tailwind CSS v3, Alpine.js |
+| Build tool | Vite |
+| Database | SQLite (development) |
+| Testing | PHPUnit (in-memory SQLite) |
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## Project Structure
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```
+app/
+  Http/Controllers/
+    AuthController.php        # Two-step login flow
+    TestController.php        # Test-taking interface
+    ResultController.php      # Career result display
+    AdminController.php       # Admin CRUD and audit logs
+    DashboardController.php
+  Models/
+    User.php, CareerTest.php, Question.php
+    TestAttempt.php, Answer.php, Career.php, CareerResult.php
+  Services/
+    CareerMatchingService.php # Core scoring algorithm
+    AuditLogger.php
 
-## Contributing
+resources/views/
+  layouts/        # app.blade.php (auth), guest.blade.php (public)
+  auth/           # Login, register, secret word verification
+  test/           # take.blade.php, result.blade.php, history.blade.php
+  admin/          # Test/question CRUD, audit logs, dashboard
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+database/migrations/   # Full schema history
+tests/                 # Feature and unit tests
+```
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Data Model
 
-## Security Vulnerabilities
+```
+User ──< TestAttempt >── CareerTest
+              │
+              ├──< Answer >── Question
+              │                   └── career_weights (JSON)
+              │
+              └──> CareerResult ──> Career
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- A `User` can have many `TestAttempt`s
+- Each `TestAttempt` collects one `Answer` per `Question`
+- On completion, `CareerMatchingService` processes the answers and creates a `CareerResult` linked to the best-matching `Career`
+
+---
+
+## Local Setup
+
+### Requirements
+
+- PHP 8.2+
+- Composer
+- Node.js 18+
+
+### Install
+
+```bash
+git clone <repo-url>
+cd career-platform
+
+composer install
+npm install
+
+cp .env.example .env
+php artisan key:generate
+```
+
+### Database
+
+```bash
+php artisan migrate
+# or with seed data:
+php artisan migrate:fresh --seed
+```
+
+### Run
+
+```bash
+# Start all services (PHP server + Vite HMR) concurrently
+composer dev
+```
+
+Or individually:
+
+```bash
+php artisan serve   # http://localhost:8000
+npm run dev         # Vite asset server
+```
+
+---
+
+## Testing
+
+Tests use an in-memory SQLite database — no extra setup needed.
+
+```bash
+# Run all tests
+composer test
+
+# Run a specific test file
+php artisan test tests/Feature/SecretWord2FATest.php
+php artisan test tests/Unit/CareerMatchingServiceTest.php
+```
+
+---
+
+## How the Matching Algorithm Works
+
+`CareerMatchingService` processes each completed test attempt:
+
+1. **Multiple choice** — maps selected option to a predefined score
+2. **Scale (1–10)** — normalizes the value to a 0–1 range
+3. **Free text** — tokenizes the answer, looks up keyword weights per career, and **inverts weights when a negation is detected** ("I don't like X" reduces X's score)
+4. Scores are multiplied by each question's `importance` weight
+5. Per-career totals are normalized and the highest match is stored as the `CareerResult` with a percentage and per-category breakdown
+
+---
+
+## Admin Panel
+
+Accessible at `/admin/*` by users with the `admin` role.
+
+- Manage careers, tests, and questions (including career weight JSON per question)
+- View all test attempt history
+- Browse the audit log for a full record of admin actions
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT
